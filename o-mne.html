@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O mně – Nicolas Jan Sefzig</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --accent: #4d8ef0; --accent-light: #7aaff5;
+  --accent-dim: rgba(77,142,240,0.15);
+  --text: #f0ede6; --muted: rgba(240,237,230,0.55);
+  --border: rgba(255,255,255,0.12);
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+html, body { width: 100%; height: 100%; overflow-x: hidden; }
+body { background: #080b12; color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.7; }
+
+#bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+#bg-video { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); min-width: 100%; min-height: 100%; width: auto; height: auto; object-fit: cover; z-index: 1; opacity: 0.2; pointer-events: none; }
+.bg-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(8,11,18,0.72) 0%, rgba(8,11,18,0.5) 50%, rgba(8,11,18,0.78) 100%); z-index: 2; }
+
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; }
+.nav-logo { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; color: var(--accent); text-decoration: none; letter-spacing: -0.02em; }
+.nav-links { display: flex; gap: 2.5rem; list-style: none; }
+.nav-links a { color: var(--muted); text-decoration: none; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.25s; position: relative; }
+.nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 1px; background: var(--accent); transform: scaleX(0); transition: transform 0.25s; }
+.nav-links a:hover, .nav-links a.active { color: var(--text); }
+.nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+
+/* PAGE HERO */
+.page-hero {
+  position: relative;
+  z-index: 10;
+  min-height: 55vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 9rem 2rem 5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-avatar {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 0 6px rgba(77,142,240,0.15), 0 0 40px rgba(77,142,240,0.2);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  background: #111827;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 800; font-size: 2rem; color: var(--accent);
+  animation: fadeDown 0.7s ease both;
+}
+.hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.page-title { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.75rem; animation: fadeDown 0.7s 0.1s ease both; }
+.page-title .accent { color: var(--accent); }
+.hero-divider { width: 36px; height: 1px; background: var(--accent); margin: 0 auto 1.25rem; animation: fadeDown 0.7s 0.2s ease both; }
+.page-sub { font-size: 1rem; color: var(--muted); font-weight: 300; max-width: 460px; line-height: 1.8; animation: fadeDown 0.7s 0.25s ease both; }
+
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+
+/* CONTENT */
+.content-section { position: relative; z-index: 10; background: rgba(8,11,18,0.92); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 6rem 0; }
+.content-section:nth-child(even) { background: rgba(12,16,26,0.95); }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 2.5rem; }
+.section-label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+.section-title { font-family: var(--font-display); font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 3rem; }
+
+/* PRIBEH */
+.pribeh-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 5rem; align-items: start; }
+.pribeh-sidebar { position: sticky; top: 7rem; }
+.sidebar-name { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem; }
+.sidebar-role { font-size: 0.85rem; color: var(--muted); font-weight: 300; margin-bottom: 2rem; }
+.sidebar-info { display: flex; flex-direction: column; gap: 0.75rem; }
+.info-row { display: flex; flex-direction: column; gap: 0.1rem; }
+.info-label { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.info-val { font-size: 0.9rem; }
+
+.pribeh-block { margin-bottom: 2.5rem; }
+.pribeh-block h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; margin-bottom: 0.85rem; }
+.pribeh-block p { color: var(--muted); font-weight: 300; line-height: 1.85; margin-bottom: 0.75rem; }
+
+.highlight-box { background: rgba(77,142,240,0.08); border-left: 2px solid var(--accent); border-radius: 0 8px 8px 0; padding: 1.1rem 1.4rem; font-size: 0.92rem; color: var(--accent-light); font-weight: 300; margin: 1.5rem 0; line-height: 1.75; }
+
+/* SKILLS */
+.skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.skill-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; transition: border-color 0.2s, transform 0.2s; }
+.skill-card:hover { border-color: rgba(77,142,240,0.35); transform: translateY(-2px); }
+.skill-icon { font-size: 1.4rem; margin-bottom: 0.75rem; }
+.skill-name { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem; }
+.skill-desc { font-size: 0.82rem; color: var(--muted); font-weight: 300; line-height: 1.6; margin-bottom: 0.85rem; }
+.skill-bar-wrap { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+.skill-bar { height: 100%; background: var(--accent); border-radius: 2px; }
+
+/* TIMELINE */
+.timeline { display: flex; flex-direction: column; }
+.timeline-item { display: grid; grid-template-columns: 150px 1fr; gap: 2rem; padding: 2rem 0; border-top: 1px solid var(--border); }
+.timeline-year { font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; color: var(--accent); padding-top: 0.15rem; }
+.timeline-title { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; }
+.timeline-place { font-size: 0.83rem; color: var(--muted); font-weight: 300; margin-bottom: 0.6rem; }
+.timeline-desc { font-size: 0.88rem; color: var(--muted); font-weight: 300; line-height: 1.7; }
+
+/* CTA */
+.cta-wrap { text-align: center; }
+.cta-title { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; }
+.cta-sub { color: var(--muted); font-weight: 300; margin-bottom: 2rem; }
+.btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: #06090f; font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; text-decoration: none; padding: 0.85rem 2rem; border-radius: 4px; transition: opacity 0.2s, transform 0.2s; }
+.btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
+
+footer { position: relative; z-index: 10; background: rgba(6,9,15,0.98); border-top: 1px solid var(--border); padding: 1.75rem 3rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted); font-weight: 300; }
+.footer-logo { font-family: var(--font-display); font-weight: 800; color: var(--accent); font-size: 0.95rem; }
+
+@media (max-width: 900px) { .pribeh-grid { grid-template-columns: 1fr; gap: 3rem; } .pribeh-sidebar { position: static; } .skills-grid { grid-template-columns: 1fr 1fr; } .timeline-item { grid-template-columns: 1fr; gap: 0.5rem; } }
+@media (max-width: 640px) { nav { padding: 1.2rem 1.5rem; } .nav-links { display: none; } .container { padding: 0 1.5rem; } .skills-grid { grid-template-columns: 1fr; } footer { flex-direction: column; gap: 0.5rem; text-align: center; padding: 1.5rem; } }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<video id="bg-video" autoplay muted loop playsinline>
+  <source src="video/o-mne.mp4" type="video/mp4">
+</video>
+<div class="bg-overlay"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">NJS.</a>
+  <ul class="nav-links">
+    <li><a href="sluzby.html">Služby</a></li>
+    <li><a href="o-mne.html" class="active">O mně</a></li>
+    <li><a href="projekty.html">Projekty</a></li>
+    <li><a href="jak-pracuji.html">Jak pracuji</a></li>
+    <li><a href="kontakt.html">Kontakt</a></li>
+  </ul>
+</nav>
+
+<div class="page-hero">
+  <div class="hero-avatar">NJS</div>
+  <h1 class="page-title">Ahoj, jsem <span class="accent">Nicolas.</span></h1>
+  <div class="hero-divider"></div>
+  <p class="page-sub">Webový vývojář a student psychologie. Stavím weby, které nejsou jen hezké – jsou navržené tak, aby skutečně fungovaly.</p>
+</div>
+
+<section class="content-section">
+  <div class="container">
+    <div class="pribeh-grid">
+      <div class="pribeh-sidebar">
+        <div class="sidebar-name">Nicolas Jan Sefzig</div>
+        <div class="sidebar-role">Webový vývojář</div>
+        <div class="sidebar-info">
+          <div class="info-row"><span class="info-label">Věk</span><span class="info-val">21 let</span></div>
+          <div class="info-row"><span class="info-label">Studium</span><span class="info-val">Psychologie, AMBIS</span></div>
+          <div class="info-row"><span class="info-label">Lokace</span><span class="info-val">Praha a okolí</span></div>
+          <div class="info-row"><span class="info-label">Email</span><span class="info-val">honzasefzig@gmail.com</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="pribeh-block">
+          <h3>Jak to začalo</h3>
+          <p>Programování a tvorbu webů jsem začal studovat na střední škole a od té doby je nepřestávám rozvíjet v praxi. Paralelně studuji psychologii na AMBIS, což mi otevřelo oči v tom, jak lidé přemýšlí a reagují online.</p>
+        </div>
+        <div class="highlight-box">Zatímco ostatní vývojáři přemýšlí jen o kódu, já přemýšlím i o člověku, který web používá. To je rozdíl.</div>
+        <div class="pribeh-block">
+          <h3>Proč psychologie + web?</h3>
+          <p>Málokdo si uvědomuje, kolik psychologie se skrývá za dobrým webem. Díky kombinaci technických znalostí a psychologického myšlení navrhuji weby, kde každý prvek má svůj důvod.</p>
+        </div>
+        <div class="pribeh-block">
+          <h3>Jak pracuji</h3>
+          <p>Věřím v přímou komunikaci a jednoduché věci. Žádné zbytečné meetingy. Řekneš mi co potřebuješ, pustíme se do práce a průběžně zapracovávám připomínky.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="content-section">
+  <div class="container">
+    <p class="section-label">Technologie</p>
+    <h2 class="section-title">Co umím</h2>
+    <div class="skills-grid">
+      <div class="skill-card"><div class="skill-icon">🌐</div><div class="skill-name">WordPress</div><p class="skill-desc">Weby, pluginy, správa, šablony na míru.</p><div class="skill-bar-wrap"><div class="skill-bar" style="width:85%"></div></div></div>
+      <div class="skill-card"><div class="skill-icon">🎨</div><div class="skill-name">HTML / CSS</div><p class="skill-desc">Čisté, sémantické a responzivní layouty.</p><div class="skill-bar-wrap"><div class="skill-bar" style="width:90%"></div></div></div>
+      <div class="skill-card"><div class="skill-icon">⚙️</div><div class="skill-name">PHP</div><p class="skill-desc">Backendová logika, formuláře, databáze.</p><div class="skill-bar-wrap"><div class="skill-bar" style="width:75%"></div></div></div>
+      <div class="skill-card"><div class="skill-icon">🗄️</div><div class="skill-name">SQL</div><p class="skill-desc">Návrh a správa databází, dotazy.</p><div class="skill-bar-wrap"><div class="skill-bar" style="width:70%"></div></div></div>
+      <div class="skill-card"><div class="skill-icon">🐍</div><div class="skill-name">Python</div><p class="skill-desc">Automatizace, skripty, nástroje.</p><div class="skill-bar-wrap"><div class="skill-bar" style="width:65%"></div></div></div>
+      <div class="skill-card"><div class="skill-icon">🧠</div><div class="skill-name">UX myšlení</div><p class="skill-desc">Psychologie uživatele, konverzní design.</p><div class="skill-bar-wrap"><div class="skill-bar" style="width:80%"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="content-section">
+  <div class="container">
+    <p class="section-label">Vzdělání & zkušenosti</p>
+    <h2 class="section-title">Timeline</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-year">2023 – nyní</div>
+        <div><div class="timeline-title">Bc. Psychologie</div><div class="timeline-place">AMBIS vysoká škola, Praha</div><div class="timeline-desc">Kognitivní procesy, rozhodování a mezilidská komunikace.</div></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2023 – nyní</div>
+        <div><div class="timeline-title">Tvorba webů – brigáda</div><div class="timeline-place">Externí spolupráce</div><div class="timeline-desc">Aktivní tvorba webů pro různé klienty – WordPress, HTML/CSS, PHP.</div></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2019 – 2023</div>
+        <div><div class="timeline-title">Programování a tvorba webů</div><div class="timeline-place">Střední škola</div><div class="timeline-desc">Čtyřletý obor zaměřený na programování, tvorbu webových aplikací a databáze.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="content-section">
+  <div class="container">
+    <div class="cta-wrap">
+      <h2 class="cta-title">Chceš spolupracovat?</h2>
+      <p class="cta-sub">Napiš mi a domluvíme se na bezplatné konzultaci.</p>
+      <a href="kontakt.html" class="btn-primary">Napsat zprávu →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">NJS.</div>
+  <span>© 2025 Nicolas Jan Sefzig</span>
+  <span>Webový vývojář · Praha a okolí</span>
+</footer>
+
+<script>
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles, mouse = { x: -9999, y: -9999 };
+const CONFIG = { count: 90, color: '77, 142, 240', maxDist: 140, speed: 0.35, radius: 1.8, mouseRadius: 120 };
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+function Particle() { this.x = Math.random()*W; this.y = Math.random()*H; this.vx = (Math.random()-.5)*CONFIG.speed; this.vy = (Math.random()-.5)*CONFIG.speed; this.r = Math.random()*CONFIG.radius+0.8; this.opacity = Math.random()*0.5+0.2; }
+function init() { resize(); particles = Array.from({length:CONFIG.count},()=>new Particle()); }
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p => {
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0||p.x>W) p.vx*=-1;
+    if(p.y<0||p.y>H) p.vy*=-1;
+    const dx=p.x-mouse.x, dy=p.y-mouse.y, dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<CONFIG.mouseRadius){const f=(CONFIG.mouseRadius-dist)/CONFIG.mouseRadius;p.x+=dx/dist*f*2;p.y+=dy/dist*f*2;}
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${CONFIG.color},${p.opacity})`; ctx.fill();
+  });
+  for(let i=0;i<particles.length;i++){for(let j=i+1;j<particles.length;j++){const a=particles[i],b=particles[j],dx=a.x-b.x,dy=a.y-b.y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<CONFIG.maxDist){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(${CONFIG.color},${(1-dist/CONFIG.maxDist)*0.35})`;ctx.lineWidth=0.6;ctx.stroke();}}}
+  requestAnimationFrame(draw);
+}
+window.addEventListener('resize',resize);
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+window.addEventListener('mouseleave',()=>{mouse.x=-9999;mouse.y=-9999;});
+const vid=document.getElementById('bg-video');
+vid.addEventListener('playing',()=>{canvas.style.opacity='0';});
+vid.addEventListener('error',()=>{vid.style.display='none';});
+init(); draw();
+</script>
+</body>
+</html>

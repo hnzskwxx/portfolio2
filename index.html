@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nicolas Jan Sefzig – Webový vývojář</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --accent: #4d8ef0;
+  --accent-light: #7aaff5;
+  --accent-dim: rgba(77,142,240,0.15);
+  --text: #f0ede6;
+  --muted: rgba(240,237,230,0.55);
+  --border: rgba(255,255,255,0.12);
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+html, body { width: 100%; height: 100%; overflow-x: hidden; }
+
+body {
+  background: #080b12;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+/* CANVAS */
+#bg-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+}
+
+/* VIDEO pozadí (volitelné – zakryje canvas pokud je soubor dostupný) */
+#bg-video {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 100%; min-height: 100%;
+  width: auto; height: auto;
+  object-fit: cover;
+  z-index: 1;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.bg-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(8,11,18,0.7) 0%, rgba(8,11,18,0.5) 50%, rgba(8,11,18,0.75) 100%);
+  z-index: 2;
+}
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 3rem;
+}
+
+.nav-logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2.5rem;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.25s;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 0; right: 0;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 0.25s;
+}
+
+.nav-links a:hover, .nav-links a.active { color: var(--text); }
+.nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+
+/* HERO */
+#hero {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6rem 2rem 4rem;
+}
+
+.hero-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 0 6px rgba(77,142,240,0.15), 0 0 40px rgba(77,142,240,0.2);
+  margin-bottom: 2rem;
+  overflow: hidden;
+  background: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2.5rem;
+  color: var(--accent);
+  animation: fadeDown 0.8s ease both;
+}
+
+.hero-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.hero-name {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 0.75rem;
+  animation: fadeDown 0.8s 0.1s ease both;
+}
+
+.hero-role {
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-light);
+  margin-bottom: 2rem;
+  animation: fadeDown 0.8s 0.2s ease both;
+}
+
+.hero-divider {
+  width: 40px;
+  height: 1px;
+  background: var(--accent);
+  margin: 0 auto 2rem;
+  animation: fadeDown 0.8s 0.3s ease both;
+}
+
+.hero-tagline {
+  font-size: 1rem;
+  color: var(--muted);
+  font-weight: 300;
+  max-width: 420px;
+  line-height: 1.8;
+  margin-bottom: 2.5rem;
+  animation: fadeDown 0.8s 0.35s ease both;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeDown 0.8s 0.45s ease both;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--accent);
+  color: #06090f;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  padding: 0.85rem 2rem;
+  border-radius: 4px;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  padding: 0.85rem 2rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s, transform 0.2s;
+}
+.btn-outline:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+.scroll-hint {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  animation: fadeDown 1s 0.8s ease both;
+}
+
+.scroll-line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--accent), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(0.5); }
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* SEKCE pod hero */
+.content-section {
+  position: relative;
+  z-index: 10;
+  background: rgba(8,11,18,0.92);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding: 6rem 0;
+}
+
+.content-section:nth-child(even) {
+  background: rgba(12,16,26,0.95);
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+}
+
+.section-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 3rem;
+}
+
+/* SLUZBY */
+.sluzby-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.sluzba-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem;
+  transition: border-color 0.25s, transform 0.25s, background 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.sluzba-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.sluzba-card:hover { border-color: rgba(77,142,240,0.35); transform: translateY(-3px); background: rgba(77,142,240,0.05); }
+.sluzba-card:hover::before { opacity: 1; }
+
+.sluzba-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+.sluzba-name { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin-bottom: 0.75rem; }
+.sluzba-desc { font-size: 0.88rem; color: var(--muted); font-weight: 300; line-height: 1.7; margin-bottom: 1.25rem; }
+.sluzba-price { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; color: var(--accent-light); }
+
+/* PROJEKTY */
+.projekty-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.projekt-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.25s, border-color 0.25s;
+  display: flex; flex-direction: column;
+}
+.projekt-card:hover { transform: translateY(-4px); border-color: rgba(77,142,240,0.35); }
+
+.projekt-thumb {
+  height: 160px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+
+.projekt-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+.projekt-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.projekt-tag {
+  font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent-light); background: var(--accent-dim);
+  border: 1px solid rgba(77,142,240,0.25);
+  padding: 0.15rem 0.55rem; border-radius: 4px;
+}
+.projekt-name { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; }
+.projekt-desc { font-size: 0.85rem; color: var(--muted); font-weight: 300; line-height: 1.65; flex: 1; }
+.projekt-footer { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-size: 0.72rem; color: var(--muted); font-style: italic; }
+
+/* PROCES */
+.proces-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.proces-step {
+  background: rgba(8,11,18,0.9);
+  padding: 2rem 1.5rem;
+  transition: background 0.2s;
+}
+.proces-step:hover { background: rgba(77,142,240,0.05); }
+.step-num { font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; color: var(--accent); opacity: 0.3; line-height: 1; margin-bottom: 1rem; }
+.step-name { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; margin-bottom: 0.5rem; }
+.step-desc { font-size: 0.82rem; color: var(--muted); font-weight: 300; line-height: 1.65; }
+
+/* KONTAKT CTA */
+.cta-wrap { text-align: center; }
+.cta-title { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; }
+.cta-sub { color: var(--muted); font-weight: 300; font-size: 1rem; margin-bottom: 2.5rem; }
+
+.kontakt-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--accent-light);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(77,142,240,0.3);
+  padding-bottom: 0.2rem;
+  transition: color 0.2s;
+}
+.kontakt-email:hover { color: var(--accent); }
+
+footer {
+  position: relative;
+  z-index: 10;
+  background: rgba(6,9,15,0.98);
+  border-top: 1px solid var(--border);
+  padding: 1.75rem 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 300;
+}
+.footer-logo { font-family: var(--font-display); font-weight: 800; color: var(--accent); font-size: 0.95rem; }
+
+@media (max-width: 900px) {
+  .sluzby-grid, .projekty-grid { grid-template-columns: 1fr 1fr; }
+  .proces-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  nav { padding: 1.2rem 1.5rem; }
+  .nav-links { display: none; }
+  .container { padding: 0 1.5rem; }
+  .sluzby-grid, .projekty-grid { grid-template-columns: 1fr; }
+  .proces-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; gap: 0.5rem; text-align: center; padding: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ANIMOVANÉ POZADÍ (particles) -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- VOLITELNÉ VIDEO POZADÍ (pokud dáš soubor do video/background.mp4, zobrazí se místo particles) -->
+<video id="bg-video" autoplay muted loop playsinline>
+  <source src="video/background.mp4" type="video/mp4">
+</video>
+
+<div class="bg-overlay"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">NJS.</a>
+  <ul class="nav-links">
+    <li><a href="sluzby.html">Služby</a></li>
+    <li><a href="o-mne.html">O mně</a></li>
+    <li><a href="projekty.html">Projekty</a></li>
+    <li><a href="jak-pracuji.html">Jak pracuji</a></li>
+    <li><a href="kontakt.html">Kontakt</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <!-- Profilová fotka: vlož src="foto/profil.jpg" pokud máš fotku -->
+  <div class="hero-avatar">NJS</div>
+
+  <h1 class="hero-name">Nicolas Jan Sefzig</h1>
+  <p class="hero-role">Webový vývojář &amp; student psychologie</p>
+  <div class="hero-divider"></div>
+  <p class="hero-tagline">Pomáhám firmám a živnostníkům získat web, který skutečně funguje.</p>
+
+  <div class="hero-actions">
+    <a href="kontakt.html" class="btn-primary">Kontaktovat →</a>
+    <a href="projekty.html" class="btn-outline">Projekty</a>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>scroll</span>
+  </div>
+</section>
+
+<!-- SLUZBY -->
+<section class="content-section" id="sluzby">
+  <div class="container">
+    <p class="section-label">Co nabízím</p>
+    <h2 class="section-title">Služby</h2>
+    <div class="sluzby-grid">
+      <div class="sluzba-card">
+        <div class="sluzba-icon">🌐</div>
+        <div class="sluzba-name">WordPress web</div>
+        <p class="sluzba-desc">Kompletní web na WordPressu – rychlý, zabezpečený a snadno spravovatelný bez technických znalostí.</p>
+        <div class="sluzba-price">od 15 000 Kč</div>
+      </div>
+      <div class="sluzba-card">
+        <div class="sluzba-icon">⚡</div>
+        <div class="sluzba-name">Web na míru</div>
+        <p class="sluzba-desc">Statický nebo dynamický web v čistém HTML/CSS/PHP – maximální rychlost, žádný zbytečný kód.</p>
+        <div class="sluzba-price">od 12 000 Kč</div>
+      </div>
+      <div class="sluzba-card">
+        <div class="sluzba-icon">🔧</div>
+        <div class="sluzba-name">Správa a údržba</div>
+        <p class="sluzba-desc">Aktualizace, zálohy a drobné úpravy. Nemusíš na nic myslet – web mám pod kontrolou já.</p>
+        <div class="sluzba-price">od 500 Kč / měsíc</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJEKTY -->
+<section class="content-section" id="projekty">
+  <div class="container">
+    <p class="section-label">Moje práce</p>
+    <h2 class="section-title">Vybrané projekty</h2>
+    <div class="projekty-grid">
+      <div class="projekt-card">
+        <div class="projekt-thumb">🍕</div>
+        <div class="projekt-body">
+          <div class="projekt-tags"><span class="projekt-tag">WordPress</span><span class="projekt-tag">PHP</span></div>
+          <h3 class="projekt-name">Pizzeria Bella Napoli</h3>
+          <p class="projekt-desc">Web pro restauraci s menu, rezervacemi a galerií. Optimalizovaný pro mobil.</p>
+          <div class="projekt-footer">ukázkový projekt</div>
+        </div>
+      </div>
+      <div class="projekt-card">
+        <div class="projekt-thumb">🔨</div>
+        <div class="projekt-body">
+          <div class="projekt-tags"><span class="projekt-tag">HTML/CSS</span><span class="projekt-tag">PHP</span></div>
+          <h3 class="projekt-name">Truhlářství Novák</h3>
+          <p class="projekt-desc">Rychlý prezentační web s galerií realizací a kontaktním formulářem.</p>
+          <div class="projekt-footer">ukázkový projekt</div>
+        </div>
+      </div>
+      <div class="projekt-card">
+        <div class="projekt-thumb">🧘</div>
+        <div class="projekt-body">
+          <div class="projekt-tags"><span class="projekt-tag">WordPress</span><span class="projekt-tag">SQL</span></div>
+          <h3 class="projekt-name">Terapeutická praxe</h3>
+          <p class="projekt-desc">Web s rezervačním systémem a blogem. Design navržený pro důvěru a klid.</p>
+          <div class="projekt-footer">ukázkový projekt</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCES -->
+<section class="content-section" id="proces">
+  <div class="container">
+    <p class="section-label">Jak to probíhá</p>
+    <h2 class="section-title">Spolupráce krok za krokem</h2>
+    <div class="proces-grid">
+      <div class="proces-step">
+        <div class="step-num">01</div>
+        <div class="step-name">Konzultace zdarma</div>
+        <p class="step-desc">Zavoláme si nebo napíšeme. Zjistím co potřebuješ, navrhnu řešení.</p>
+      </div>
+      <div class="proces-step">
+        <div class="step-num">02</div>
+        <div class="step-name">Návrh a cena</div>
+        <p class="step-desc">Do 48 hodin pošlu konkrétní nabídku na míru tvému projektu.</p>
+      </div>
+      <div class="proces-step">
+        <div class="step-num">03</div>
+        <div class="step-name">Vývoj webu</div>
+        <p class="step-desc">Průběžně informuji o postupu. Základní web do 14 dní.</p>
+      </div>
+      <div class="proces-step">
+        <div class="step-num">04</div>
+        <div class="step-name">Spuštění</div>
+        <p class="step-desc">Po schválení web spustíme. Zůstávám dostupný pro úpravy.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KONTAKT -->
+<section class="content-section">
+  <div class="container">
+    <div class="cta-wrap">
+      <p class="section-label">Kontakt</p>
+      <h2 class="cta-title">Pojďme něco vytvořit.</h2>
+      <p class="cta-sub">Napiš mi – odpovím do 24 hodin.</p>
+      <a href="mailto:honzasefzig@gmail.com" class="kontakt-email">honzasefzig@gmail.com</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">NJS.</div>
+  <span>© 2025 Nicolas Jan Sefzig · Praha a okolí</span>
+  <span>Webový vývojář</span>
+</footer>
+
+<script>
+// ── PARTICLES ──────────────────────────────────────────────
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles, mouse = { x: -9999, y: -9999 };
+
+const CONFIG = {
+  count: 90,
+  color: '77, 142, 240',
+  maxDist: 140,
+  speed: 0.35,
+  radius: 1.8,
+  mouseRadius: 120,
+};
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function Particle() {
+  this.x = Math.random() * W;
+  this.y = Math.random() * H;
+  this.vx = (Math.random() - 0.5) * CONFIG.speed;
+  this.vy = (Math.random() - 0.5) * CONFIG.speed;
+  this.r = Math.random() * CONFIG.radius + 0.8;
+  this.opacity = Math.random() * 0.5 + 0.2;
+}
+
+function init() {
+  resize();
+  particles = Array.from({ length: CONFIG.count }, () => new Particle());
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  particles.forEach(p => {
+    // Move
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0 || p.x > W) p.vx *= -1;
+    if (p.y < 0 || p.y > H) p.vy *= -1;
+
+    // Mouse repel
+    const dx = p.x - mouse.x;
+    const dy = p.y - mouse.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < CONFIG.mouseRadius) {
+      const force = (CONFIG.mouseRadius - dist) / CONFIG.mouseRadius;
+      p.x += dx / dist * force * 2;
+      p.y += dy / dist * force * 2;
+    }
+
+    // Draw dot
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${CONFIG.color}, ${p.opacity})`;
+    ctx.fill();
+  });
+
+  // Draw lines
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const a = particles[i], b = particles[j];
+      const dx = a.x - b.x, dy = a.y - b.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < CONFIG.maxDist) {
+        const alpha = (1 - dist / CONFIG.maxDist) * 0.35;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = `rgba(${CONFIG.color}, ${alpha})`;
+        ctx.lineWidth = 0.6;
+        ctx.stroke();
+      }
+    }
+  }
+
+  requestAnimationFrame(draw);
+}
+
+window.addEventListener('resize', resize);
+window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+window.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+// Skrýt canvas pokud video funguje
+const vid = document.getElementById('bg-video');
+vid.addEventListener('playing', () => { canvas.style.opacity = '0'; });
+vid.addEventListener('error', () => { vid.style.display = 'none'; });
+
+init();
+draw();
+</script>
+
+</body>
+</html>

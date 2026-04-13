@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jak pracuji – Nicolas Jan Sefzig</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --accent: #4d8ef0; --accent-light: #7aaff5; --accent-dim: rgba(77,142,240,0.15); --text: #f0ede6; --muted: rgba(240,237,230,0.55); --border: rgba(255,255,255,0.12); --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif; }
+html, body { width: 100%; height: 100%; overflow-x: hidden; }
+body { background: #080b12; color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.7; }
+
+#bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+#bg-video { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); min-width: 100%; min-height: 100%; width: auto; height: auto; object-fit: cover; z-index: 1; opacity: 0.2; pointer-events: none; }
+.bg-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(8,11,18,0.72) 0%, rgba(8,11,18,0.5) 50%, rgba(8,11,18,0.78) 100%); z-index: 2; }
+
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; }
+.nav-logo { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; color: var(--accent); text-decoration: none; letter-spacing: -0.02em; }
+.nav-links { display: flex; gap: 2.5rem; list-style: none; }
+.nav-links a { color: var(--muted); text-decoration: none; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.25s; position: relative; }
+.nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 1px; background: var(--accent); transform: scaleX(0); transition: transform 0.25s; }
+.nav-links a:hover, .nav-links a.active { color: var(--text); }
+.nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+
+.page-hero { position: relative; z-index: 10; min-height: 55vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 9rem 2rem 5rem; border-bottom: 1px solid var(--border); }
+.section-label-hero { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; animation: fadeDown 0.7s ease both; }
+.page-title { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.75rem; animation: fadeDown 0.7s 0.1s ease both; }
+.page-title .accent { color: var(--accent); }
+.hero-divider { width: 36px; height: 1px; background: var(--accent); margin: 0 auto 1.25rem; animation: fadeDown 0.7s 0.15s ease both; }
+.page-sub { font-size: 1rem; color: var(--muted); font-weight: 300; max-width: 480px; line-height: 1.8; animation: fadeDown 0.7s 0.2s ease both; }
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+
+.content-section { position: relative; z-index: 10; background: rgba(8,11,18,0.92); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 6rem 0; }
+.content-section.alt { background: rgba(12,16,26,0.95); }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 2.5rem; }
+.section-label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+.section-title { font-family: var(--font-display); font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 3rem; }
+
+/* VELKÝ PROCES */
+.proces-steps { display: flex; flex-direction: column; gap: 0; }
+
+.proces-krok {
+  display: grid;
+  grid-template-columns: 80px 3px 1fr;
+  gap: 0 2.5rem;
+  padding-bottom: 4rem;
+  position: relative;
+}
+.proces-krok:last-child { padding-bottom: 0; }
+
+.krok-num-wrap { display: flex; flex-direction: column; align-items: center; }
+.krok-num {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  border: 2px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 1.1rem;
+  color: var(--accent);
+  flex-shrink: 0;
+  box-shadow: 0 0 20px rgba(77,142,240,0.15);
+}
+
+.krok-line {
+  width: 2px;
+  flex: 1;
+  background: linear-gradient(to bottom, rgba(77,142,240,0.4), rgba(77,142,240,0.05));
+  margin-top: 0.5rem;
+}
+.proces-krok:last-child .krok-line { display: none; }
+
+.krok-content { padding-top: 0.75rem; padding-bottom: 1rem; }
+.krok-title { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+.krok-duration { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.25rem; }
+.krok-desc { color: var(--muted); font-weight: 300; line-height: 1.85; margin-bottom: 1.25rem; font-size: 0.95rem; }
+
+.krok-detail {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 2rem;
+}
+.krok-detail-item { font-size: 0.82rem; color: var(--muted); font-weight: 300; display: flex; align-items: center; gap: 0.5rem; }
+.krok-detail-item::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+/* PRINCIPY */
+.principy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.princip-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; transition: border-color 0.2s, transform 0.2s; }
+.princip-card:hover { border-color: rgba(77,142,240,0.35); transform: translateY(-3px); }
+.princip-icon { font-size: 2rem; margin-bottom: 1rem; }
+.princip-name { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin-bottom: 0.6rem; }
+.princip-desc { font-size: 0.88rem; color: var(--muted); font-weight: 300; line-height: 1.7; }
+
+/* KOMUNIKACE */
+.komunikace-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+.komunikace-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; }
+.komunikace-title { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin-bottom: 0.5rem; }
+.komunikace-desc { font-size: 0.88rem; color: var(--muted); font-weight: 300; line-height: 1.75; margin-bottom: 1rem; }
+.komunikace-tag { display: inline-block; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-light); background: var(--accent-dim); border: 1px solid rgba(77,142,240,0.25); padding: 0.2rem 0.6rem; border-radius: 4px; }
+
+/* CENY TABULKA – rychlý přehled */
+.rychly-prehled { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.prehled-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; text-align: center; transition: border-color 0.2s; position: relative; overflow: hidden; }
+.prehled-card.featured { border-color: rgba(77,142,240,0.4); background: rgba(77,142,240,0.05); }
+.prehled-card.featured::before { content: 'Nejoblíbenější'; position: absolute; top: 1rem; right: -2rem; background: var(--accent); color: #06090f; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.25rem 2.5rem; transform: rotate(35deg); }
+.prehled-icon { font-size: 2rem; margin-bottom: 1rem; }
+.prehled-name { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; }
+.prehled-price { font-family: var(--font-display); font-weight: 800; font-size: 1.8rem; color: var(--accent); line-height: 1; margin-bottom: 0.3rem; }
+.prehled-unit { font-size: 0.78rem; color: var(--muted); margin-bottom: 1.25rem; }
+.prehled-features { display: flex; flex-direction: column; gap: 0.5rem; text-align: left; }
+.prehled-feature { font-size: 0.82rem; color: var(--muted); font-weight: 300; display: flex; align-items: center; gap: 0.5rem; }
+.prehled-feature::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+/* CTA */
+.cta-wrap { text-align: center; }
+.cta-title { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; }
+.cta-sub { color: var(--muted); font-weight: 300; margin-bottom: 2.5rem; }
+.cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: #06090f; font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; text-decoration: none; padding: 0.9rem 2rem; border-radius: 6px; transition: opacity 0.2s, transform 0.2s; }
+.btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
+.btn-outline { display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: var(--text); font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; text-decoration: none; padding: 0.9rem 2rem; border-radius: 6px; border: 1px solid var(--border); transition: border-color 0.2s, transform 0.2s; }
+.btn-outline:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+footer { position: relative; z-index: 10; background: rgba(6,9,15,0.98); border-top: 1px solid var(--border); padding: 1.75rem 3rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted); font-weight: 300; }
+.footer-logo { font-family: var(--font-display); font-weight: 800; color: var(--accent); font-size: 0.95rem; }
+
+@media (max-width: 900px) { .principy-grid { grid-template-columns: 1fr 1fr; } .komunikace-grid { grid-template-columns: 1fr; } .rychly-prehled { grid-template-columns: 1fr; } .proces-krok { grid-template-columns: 60px 2px 1fr; gap: 0 1.5rem; } .krok-detail { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { nav { padding: 1.2rem 1.5rem; } .nav-links { display: none; } .container { padding: 0 1.5rem; } .principy-grid { grid-template-columns: 1fr; } footer { flex-direction: column; gap: 0.5rem; text-align: center; padding: 1.5rem; } }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<video id="bg-video" autoplay muted loop playsinline>
+  <source src="video/jak-pracuji.mp4" type="video/mp4">
+</video>
+<div class="bg-overlay"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">NJS.</a>
+  <ul class="nav-links">
+    <li><a href="sluzby.html">Služby</a></li>
+    <li><a href="o-mne.html">O mně</a></li>
+    <li><a href="projekty.html">Projekty</a></li>
+    <li><a href="jak-pracuji.html" class="active">Jak pracuji</a></li>
+    <li><a href="kontakt.html">Kontakt</a></li>
+  </ul>
+</nav>
+
+<div class="page-hero">
+  <p class="section-label-hero">Proces spolupráce</p>
+  <h1 class="page-title">Jak <span class="accent">pracuji.</span></h1>
+  <div class="hero-divider"></div>
+  <p class="page-sub">Žádné složité procesy. Přímá komunikace, jasné kroky, výsledek který vidíš.</p>
+</div>
+
+<!-- HLAVNÍ PROCES -->
+<section class="content-section">
+  <div class="container">
+    <p class="section-label">Krok za krokem</p>
+    <h2 class="section-title">Od prvního kontaktu po spuštění</h2>
+    <div class="proces-steps">
+
+      <div class="proces-krok">
+        <div class="krok-num-wrap">
+          <div class="krok-num">01</div>
+          <div class="krok-line"></div>
+        </div>
+        <div></div>
+        <div class="krok-content">
+          <div class="krok-title">Bezplatná konzultace</div>
+          <div class="krok-duration">Do 24 hodin od prvního kontaktu</div>
+          <p class="krok-desc">Napíšeš mi nebo zavoláme si. Řekneš mi co potřebuješ, já se zeptám na vše potřebné – o tvém podnikání, zákaznících, cílech a představách. Žádné závazky, žádné skryté poplatky. Konzultace je vždy zdarma.</p>
+          <div class="krok-detail">
+            <span class="krok-detail-item">Poznám tvůj projekt do hloubky</span>
+            <span class="krok-detail-item">Navrhnu vhodné řešení</span>
+            <span class="krok-detail-item">Odpovím na všechny otázky</span>
+            <span class="krok-detail-item">Bez závazků</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="proces-krok">
+        <div class="krok-num-wrap">
+          <div class="krok-num">02</div>
+          <div class="krok-line"></div>
+        </div>
+        <div></div>
+        <div class="krok-content">
+          <div class="krok-title">Nabídka a smlouva</div>
+          <div class="krok-duration">Do 48 hodin po konzultaci</div>
+          <p class="krok-desc">Pošlu ti konkrétní cenovou nabídku s přesným rozsahem práce, termínem dodání a podmínkami. Vše je transparentní – žádné překvapivé přirážky. Po odsouhlasení podepíšeme jednoduchou smlouvu a začínáme.</p>
+          <div class="krok-detail">
+            <span class="krok-detail-item">Přesná cenová nabídka</span>
+            <span class="krok-detail-item">Jasný termín dodání</span>
+            <span class="krok-detail-item">Jednoduchá smlouva</span>
+            <span class="krok-detail-item">Záloha 50 % před zahájením</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="proces-krok">
+        <div class="krok-num-wrap">
+          <div class="krok-num">03</div>
+          <div class="krok-line"></div>
+        </div>
+        <div></div>
+        <div class="krok-content">
+          <div class="krok-title">Příprava podkladů</div>
+          <div class="krok-duration">Probíhá souběžně s vývojem</div>
+          <p class="krok-desc">Potřebuji od tebe texty, fotky a logo. Pokud nic nemáš, pomůžu – navrhnu strukturu textů nebo doporučím zdroje pro fotografie. Čím lepší podklady, tím lepší výsledek. Nejsem ale závislý na tom, abych začal.</p>
+          <div class="krok-detail">
+            <span class="krok-detail-item">Texty pro web</span>
+            <span class="krok-detail-item">Fotografie a logo</span>
+            <span class="krok-detail-item">Přístupy k doméně/hostingu</span>
+            <span class="krok-detail-item">Pomůžu pokud nic nemáš</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="proces-krok">
+        <div class="krok-num-wrap">
+          <div class="krok-num">04</div>
+          <div class="krok-line"></div>
+        </div>
+        <div></div>
+        <div class="krok-content">
+          <div class="krok-title">Vývoj webu</div>
+          <div class="krok-duration">5–14 dní (závisí na rozsahu)</div>
+          <p class="krok-desc">Pustím se do práce. Průběžně tě informuji o postupu a po dokončení základní kostry ti pošlu odkaz na testovací verzi, kde vše vidíš v reálu. Připomínky zapracuji ihned. Počet revizí není omezený.</p>
+          <div class="krok-detail">
+            <span class="krok-detail-item">Pravidelné aktualizace o postupu</span>
+            <span class="krok-detail-item">Testovací verze k náhledu</span>
+            <span class="krok-detail-item">Neomezené revize</span>
+            <span class="krok-detail-item">Mobilní testování</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="proces-krok">
+        <div class="krok-num-wrap">
+          <div class="krok-num">05</div>
+          <div class="krok-line"></div>
+        </div>
+        <div></div>
+        <div class="krok-content">
+          <div class="krok-title">Schválení a spuštění</div>
+          <div class="krok-duration">Den D</div>
+          <p class="krok-desc">Jakmile jsi spokojen, uhradíš zbývající platbu a web spustíme na tvé doméně. Postarám se o veškerou technickou stránku – DNS, SSL certifikát, přesměrování. Ty jen koukáš.</p>
+          <div class="krok-detail">
+            <span class="krok-detail-item">Spuštění na tvé doméně</span>
+            <span class="krok-detail-item">Nastavení SSL (HTTPS)</span>
+            <span class="krok-detail-item">Google Analytics</span>
+            <span class="krok-detail-item">Doplatek 50 % po schválení</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="proces-krok">
+        <div class="krok-num-wrap">
+          <div class="krok-num">06</div>
+          <div class="krok-line"></div>
+        </div>
+        <div></div>
+        <div class="krok-content">
+          <div class="krok-title">Podpora po spuštění</div>
+          <div class="krok-duration">30 dní zdarma</div>
+          <p class="krok-desc">Po spuštění jsem k dispozici 30 dní zdarma pro drobné úpravy a dotazy. Naučím tě jak web spravovat a odpovím na vše co budeš potřebovat vědět. Po 30 dnech můžeme pokračovat v rámci měsíční správy.</p>
+          <div class="krok-detail">
+            <span class="krok-detail-item">30 dní podpora zdarma</span>
+            <span class="krok-detail-item">Zaškolení ke správě</span>
+            <span class="krok-detail-item">Drobné úpravy</span>
+            <span class="krok-detail-item">Možnost měsíční správy</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- MOJE PRINCIPY -->
+<section class="content-section alt">
+  <div class="container">
+    <p class="section-label">Jak přemýšlím</p>
+    <h2 class="section-title">Moje pracovní principy</h2>
+    <div class="principy-grid">
+      <div class="princip-card">
+        <div class="princip-icon">🎯</div>
+        <div class="princip-name">Výsledek, ne jen web</div>
+        <p class="princip-desc">Nezajímá mě jen aby web vypadal hezky. Zajímá mě, jestli ti přinese zákazníky. Každé rozhodnutí dělám s ohledem na cíl – ne na estetiku.</p>
+      </div>
+      <div class="princip-card">
+        <div class="princip-icon">💬</div>
+        <div class="princip-name">Přímá komunikace</div>
+        <p class="princip-desc">Žádné e-mailové řetězce bez odpovědi, žádné týdny čekání. Odpovídám do 24 hodin, mluvím srozumitelně a bez technického žargonu.</p>
+      </div>
+      <div class="princip-card">
+        <div class="princip-icon">🧠</div>
+        <div class="princip-name">Psychologie v designu</div>
+        <p class="princip-desc">Studuji psychologii a aplikuji ji při návrhu webů. Barvy, rozmístění prvků, texty – vše má vliv na to, jak se uživatel rozhoduje.</p>
+      </div>
+      <div class="princip-card">
+        <div class="princip-icon">⚡</div>
+        <div class="princip-name">Rychlost a výkon</div>
+        <p class="princip-desc">Každý web optimalizuji pro rychlé načítání. Pomalý web = ztracení zákazníci. Testuji na reálných zařízeních a připojeních.</p>
+      </div>
+      <div class="princip-card">
+        <div class="princip-icon">📱</div>
+        <div class="princip-name">Mobile first</div>
+        <p class="princip-desc">Více než polovina návštěvníků přichází z mobilů. Navrhuji vždy nejdříve pro telefon a pak přizpůsobuji pro desktop – ne naopak.</p>
+      </div>
+      <div class="princip-card">
+        <div class="princip-icon">🔒</div>
+        <div class="princip-name">Čistý a bezpečný kód</div>
+        <p class="princip-desc">Kód píšu přehledně a udržitelně. Bezpečnost není volitelná funkce – je to základ. HTTPS, aktualizace, zálohy – vše v pořádku.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KOMUNIKACE -->
+<section class="content-section">
+  <div class="container">
+    <p class="section-label">Jak jsme v kontaktu</p>
+    <h2 class="section-title">Komunikace během projektu</h2>
+    <div class="komunikace-grid">
+      <div class="komunikace-card">
+        <div class="komunikace-title">Email</div>
+        <p class="komunikace-desc">Primární způsob komunikace. Odpovídám do 24 hodin v pracovní dny. Veškeré důležité věci (nabídky, schválení, podklady) řešíme emailem – máme tak vše zdokumentované.</p>
+        <span class="komunikace-tag">Primární kanál</span>
+      </div>
+      <div class="komunikace-card">
+        <div class="komunikace-title">Video hovor</div>
+        <p class="komunikace-desc">Pro složitější konzultace nebo ukázku průběžné práce se rádi spojíme přes Google Meet nebo Zoom. Stačí se domluvit předem na termínu.</p>
+        <span class="komunikace-tag">Na vyžádání</span>
+      </div>
+      <div class="komunikace-card">
+        <div class="komunikace-title">Osobní schůzka</div>
+        <p class="komunikace-desc">Možná v Praze a blízkém okolí. Ideální pro první konzultaci nebo předání hotového projektu. Domluvíme se na místě, které vyhovuje oběma stranám.</p>
+        <span class="komunikace-tag">Praha a okolí</span>
+      </div>
+      <div class="komunikace-card">
+        <div class="komunikace-title">Testovací prostředí</div>
+        <p class="komunikace-desc">Průběžnou práci sdílím přes odkaz na testovací verzi webu. Vidíš přesně jak web vypadá a funguje – bez nutnosti instalovat cokoliv nebo mít technické znalosti.</p>
+        <span class="komunikace-tag">Live náhled</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RYCHLÝ PŘEHLED CEN -->
+<section class="content-section alt">
+  <div class="container">
+    <p class="section-label">Přehled cen</p>
+    <h2 class="section-title">Kolik to stojí</h2>
+    <div class="rychly-prehled">
+      <div class="prehled-card">
+        <div class="prehled-icon">⚡</div>
+        <div class="prehled-name">Web na míru</div>
+        <div class="prehled-price">12k</div>
+        <div class="prehled-unit">od 12 000 Kč</div>
+        <div class="prehled-features">
+          <span class="prehled-feature">HTML / CSS / PHP</span>
+          <span class="prehled-feature">Maximální rychlost</span>
+          <span class="prehled-feature">Responzivní design</span>
+          <span class="prehled-feature">Kontaktní formulář</span>
+          <span class="prehled-feature">30 dní podpora</span>
+        </div>
+      </div>
+      <div class="prehled-card featured">
+        <div class="prehled-icon">🌐</div>
+        <div class="prehled-name">WordPress web</div>
+        <div class="prehled-price">15k</div>
+        <div class="prehled-unit">od 15 000 Kč</div>
+        <div class="prehled-features">
+          <span class="prehled-feature">Vlastní správa obsahu</span>
+          <span class="prehled-feature">Blog / aktuality</span>
+          <span class="prehled-feature">SEO optimalizace</span>
+          <span class="prehled-feature">Zaškolení zdarma</span>
+          <span class="prehled-feature">30 dní podpora</span>
+        </div>
+      </div>
+      <div class="prehled-card">
+        <div class="prehled-icon">🔧</div>
+        <div class="prehled-name">Správa webu</div>
+        <div class="prehled-price">500</div>
+        <div class="prehled-unit">od 500 Kč / měsíc</div>
+        <div class="prehled-features">
+          <span class="prehled-feature">Měsíční aktualizace</span>
+          <span class="prehled-feature">Automatické zálohy</span>
+          <span class="prehled-feature">Monitorování</span>
+          <span class="prehled-feature">Drobné úpravy</span>
+          <span class="prehled-feature">Měsíční report</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="content-section">
+  <div class="container">
+    <div class="cta-wrap">
+      <h2 class="cta-title">Začneme spolupracovat?</h2>
+      <p class="cta-sub">První konzultace je vždy zdarma a bez závazků.</p>
+      <div class="cta-actions">
+        <a href="kontakt.html" class="btn-primary">Napsat zprávu →</a>
+        <a href="sluzby.html" class="btn-outline">Zobrazit služby</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">NJS.</div>
+  <span>© 2025 Nicolas Jan Sefzig</span>
+  <span>Webový vývojář · Praha a okolí</span>
+</footer>
+
+<script>
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');let W,H,particles,mouse={x:-9999,y:-9999};
+const C={count:90,color:'77, 142, 240',maxDist:140,speed:0.35,radius:1.8,mouseRadius:120};
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function P(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*C.speed;this.vy=(Math.random()-.5)*C.speed;this.r=Math.random()*C.radius+0.8;this.opacity=Math.random()*0.5+0.2;}
+function init(){resize();particles=Array.from({length:C.count},()=>new P());}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+  const dx=p.x-mouse.x,dy=p.y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);if(d<C.mouseRadius){const f=(C.mouseRadius-d)/C.mouseRadius;p.x+=dx/d*f*2;p.y+=dy/d*f*2;}
+  ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${C.color},${p.opacity})`;ctx.fill();});
+  for(let i=0;i<particles.length;i++){for(let j=i+1;j<particles.length;j++){const a=particles[i],b=particles[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.sqrt(dx*dx+dy*dy);if(d<C.maxDist){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(${C.color},${(1-d/C.maxDist)*0.35})`;ctx.lineWidth=0.6;ctx.stroke();}}}
+  requestAnimationFrame(draw);
+}
+window.addEventListener('resize',resize);
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+window.addEventListener('mouseleave',()=>{mouse.x=-9999;mouse.y=-9999;});
+const vid=document.getElementById('bg-video');
+vid.addEventListener('playing',()=>{canvas.style.opacity='0';});
+vid.addEventListener('error',()=>{vid.style.display='none';});
+init();draw();
+</script>
+</body>
+</html>

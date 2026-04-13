@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projekty – Nicolas Jan Sefzig</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --accent: #4d8ef0; --accent-light: #7aaff5; --accent-dim: rgba(77,142,240,0.15); --text: #f0ede6; --muted: rgba(240,237,230,0.55); --border: rgba(255,255,255,0.12); --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif; }
+html, body { width: 100%; height: 100%; overflow-x: hidden; }
+body { background: #080b12; color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.7; }
+
+#bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+#bg-video { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); min-width: 100%; min-height: 100%; width: auto; height: auto; object-fit: cover; z-index: 1; opacity: 0.2; pointer-events: none; }
+.bg-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(8,11,18,0.72) 0%, rgba(8,11,18,0.5) 50%, rgba(8,11,18,0.78) 100%); z-index: 2; }
+
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; }
+.nav-logo { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; color: var(--accent); text-decoration: none; letter-spacing: -0.02em; }
+.nav-links { display: flex; gap: 2.5rem; list-style: none; }
+.nav-links a { color: var(--muted); text-decoration: none; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.25s; position: relative; }
+.nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 1px; background: var(--accent); transform: scaleX(0); transition: transform 0.25s; }
+.nav-links a:hover, .nav-links a.active { color: var(--text); }
+.nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+
+.page-hero { position: relative; z-index: 10; min-height: 50vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 9rem 2rem 5rem; border-bottom: 1px solid var(--border); }
+.page-title { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.75rem; animation: fadeDown 0.7s ease both; }
+.page-title .accent { color: var(--accent); }
+.hero-divider { width: 36px; height: 1px; background: var(--accent); margin: 0 auto 1.25rem; animation: fadeDown 0.7s 0.15s ease both; }
+.page-sub { font-size: 1rem; color: var(--muted); font-weight: 300; max-width: 460px; line-height: 1.8; animation: fadeDown 0.7s 0.2s ease both; }
+.section-label-hero { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; animation: fadeDown 0.7s ease both; }
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+
+.content-section { position: relative; z-index: 10; background: rgba(8,11,18,0.92); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 6rem 0; }
+.content-section:nth-child(even) { background: rgba(12,16,26,0.95); }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 2.5rem; }
+.section-label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+.section-title { font-family: var(--font-display); font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 2rem; }
+
+.filtr-buttons { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 3rem; }
+.filtr-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: var(--font-body); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.5rem 1.1rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+.filtr-btn:hover, .filtr-btn.active { border-color: var(--accent); color: var(--accent-light); background: var(--accent-dim); }
+
+.projekty-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.projekt-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: transform 0.25s, border-color 0.25s; display: flex; flex-direction: column; }
+.projekt-card:hover { transform: translateY(-4px); border-color: rgba(77,142,240,0.35); }
+.projekt-card.featured { grid-column: span 2; }
+
+.projekt-thumb { height: 180px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); position: relative; }
+.projekt-card.featured .projekt-thumb { height: 240px; font-size: 5rem; }
+.projekt-fiktivni-badge { position: absolute; top: 1rem; right: 1rem; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(8,11,18,0.8); color: var(--muted); padding: 0.2rem 0.6rem; border-radius: 4px; font-style: italic; }
+
+.projekt-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+.projekt-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.projekt-tag { font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-light); background: var(--accent-dim); border: 1px solid rgba(77,142,240,0.25); padding: 0.15rem 0.55rem; border-radius: 4px; }
+.projekt-name { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin-bottom: 0.5rem; }
+.projekt-desc { font-size: 0.88rem; color: var(--muted); font-weight: 300; line-height: 1.7; flex: 1; margin-bottom: 1rem; }
+.projekt-features { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+.projekt-feature { font-size: 0.8rem; color: var(--muted); font-weight: 300; display: flex; align-items: center; gap: 0.5rem; }
+.projekt-feature::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.projekt-footer { padding-top: 0.75rem; border-top: 1px solid var(--border); font-size: 0.72rem; color: var(--muted); font-style: italic; }
+
+.cta-wrap { text-align: center; }
+.cta-title { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; }
+.cta-sub { color: var(--muted); font-weight: 300; margin-bottom: 2rem; }
+.btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: #06090f; font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; text-decoration: none; padding: 0.85rem 2rem; border-radius: 4px; transition: opacity 0.2s, transform 0.2s; }
+.btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
+
+footer { position: relative; z-index: 10; background: rgba(6,9,15,0.98); border-top: 1px solid var(--border); padding: 1.75rem 3rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted); font-weight: 300; }
+.footer-logo { font-family: var(--font-display); font-weight: 800; color: var(--accent); font-size: 0.95rem; }
+
+@media (max-width: 900px) { .projekty-grid { grid-template-columns: 1fr 1fr; } .projekt-card.featured { grid-column: span 2; } }
+@media (max-width: 640px) { nav { padding: 1.2rem 1.5rem; } .nav-links { display: none; } .container { padding: 0 1.5rem; } .projekty-grid { grid-template-columns: 1fr; } .projekt-card.featured { grid-column: span 1; } footer { flex-direction: column; gap: 0.5rem; text-align: center; padding: 1.5rem; } }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<video id="bg-video" autoplay muted loop playsinline>
+  <source src="video/projekty.mp4" type="video/mp4">
+</video>
+<div class="bg-overlay"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">NJS.</a>
+  <ul class="nav-links">
+    <li><a href="sluzby.html">Služby</a></li>
+    <li><a href="o-mne.html">O mně</a></li>
+    <li><a href="projekty.html" class="active">Projekty</a></li>
+    <li><a href="jak-pracuji.html">Jak pracuji</a></li>
+    <li><a href="kontakt.html">Kontakt</a></li>
+  </ul>
+</nav>
+
+<div class="page-hero">
+  <p class="section-label-hero">Portfolio</p>
+  <h1 class="page-title">Vybrané <span class="accent">projekty.</span></h1>
+  <div class="hero-divider"></div>
+  <p class="page-sub">Ukázkové weby demonstrující různé typy projektů a technologie.</p>
+</div>
+
+<section class="content-section">
+  <div class="container">
+    <div class="filtr-buttons">
+      <button class="filtr-btn active">Vše</button>
+      <button class="filtr-btn">WordPress</button>
+      <button class="filtr-btn">HTML / CSS</button>
+      <button class="filtr-btn">PHP</button>
+    </div>
+    <div class="projekty-grid">
+      <div class="projekt-card featured">
+        <div class="projekt-thumb">🍕<span class="projekt-fiktivni-badge">ukázkový projekt</span></div>
+        <div class="projekt-body">
+          <div class="projekt-tags"><span class="projekt-tag">WordPress</span><span class="projekt-tag">PHP</span><span class="projekt-tag">SQL</span></div>
+          <h3 class="projekt-name">Pizzeria Bella Napoli</h3>
+          <p class="projekt-desc">Kompletní web pro italskou restauraci s důrazem na mobilní optimalizaci a jednoduché online menu.</p>
+          <div class="projekt-features">
+            <span class="projekt-feature">Online menu s kategoriemi</span>
+            <span class="projekt-feature">Rezervační formulář napojený na email</span>
+            <span class="projekt-feature">Galerie interiéru a jídel</span>
+            <span class="projekt-feature">Plně responzivní design</span>
+          </div>
+          <div class="projekt-footer">ukázkový projekt</div>
+        </div>
+      </div>
+      <div class="projekt-card">
+        <div class="projekt-thumb">🔨<span class="projekt-fiktivni-badge">ukázkový projekt</span></div>
+        <div class="projekt-body">
+          <div class="projekt-tags"><span class="projekt-tag">HTML/CSS</span><span class="projekt-tag">PHP</span></div>
+          <h3 class="projekt-name">Truhlářství Novák</h3>
+          <p class="projekt-desc">Rychlý prezentační web pro rodinné truhlářství. Galerie realizací a kontaktní formulář.</p>
+          <div class="projekt-features">
+            <span class="projekt-feature">Galerie realizací</span>
+            <span class="projekt-feature">Ceník služeb</span>
+          </div>
+          <div class="projekt-footer">ukázkový projekt</div>
+        </div>
+      </div>
+      <div class="projekt-card">
+        <div class="projekt-thumb">🧘<span class="projekt-fiktivni-badge">ukázkový projekt</span></div>
+        <div class="projekt-body">
+          <div class="projekt-tags"><span class="projekt-tag">WordPress</span><span class="projekt-tag">SQL</span></div>
+          <h3 class="projekt-name">Terapeutická praxe</h3>
+          <p class="projekt-desc">Web s rezervačním systémem a blogem. Design záměrně klidný a důvěryhodný.</p>
+          <div class="projekt-features">
+            <span class="projekt-feature">Rezervační systém</span>
+            <span class="projekt-feature">Blog a GDPR formuláře</span>
+          </div>
+          <div class="projekt-footer">ukázkový projekt</div>
+        </div>
+      </div>
+      <div class="projekt-card">
+        <div class="projekt-thumb">💇<span class="projekt-fiktivni-badge">ukázkový projekt</span></div>
+        <div class="projekt-body">
+          <div class="projekt-tags"><span class="projekt-tag">WordPress</span></div>
+          <h3 class="projekt-name">Kadeřnictví Studio M</h3>
+          <p class="projekt-desc">Elegantní web pro kadeřnické studio s online rezervací termínů.</p>
+          <div class="projekt-features">
+            <span class="projekt-feature">Online booking</span>
+            <span class="projekt-feature">Galerie účesů</span>
+          </div>
+          <div class="projekt-footer">ukázkový projekt</div>
+        </div>
+      </div>
+      <div class="projekt-card">
+        <div class="projekt-thumb">🏗️<span class="projekt-fiktivni-badge">ukázkový projekt</span></div>
+        <div class="projekt-body">
+          <div class="projekt-tags"><span class="projekt-tag">HTML/CSS</span><span class="projekt-tag">PHP</span></div>
+          <h3 class="projekt-name">Stavební firma Kovář</h3>
+          <p class="projekt-desc">Solidní prezentační web s referencemi a poptávkovým formulářem.</p>
+          <div class="projekt-features">
+            <span class="projekt-feature">Reference a fotogalerie</span>
+            <span class="projekt-feature">Poptávkový formulář</span>
+          </div>
+          <div class="projekt-footer">ukázkový projekt</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="content-section">
+  <div class="container">
+    <div class="cta-wrap">
+      <h2 class="cta-title">Chceš podobný web?</h2>
+      <p class="cta-sub">Napiš mi a domluvíme se na bezplatné konzultaci.</p>
+      <a href="kontakt.html" class="btn-primary">Nezávazná poptávka →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">NJS.</div>
+  <span>© 2025 Nicolas Jan Sefzig</span>
+  <span>Webový vývojář · Praha a okolí</span>
+</footer>
+
+<script>
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');let W,H,particles,mouse={x:-9999,y:-9999};
+const C={count:90,color:'77, 142, 240',maxDist:140,speed:0.35,radius:1.8,mouseRadius:120};
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function P(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*C.speed;this.vy=(Math.random()-.5)*C.speed;this.r=Math.random()*C.radius+0.8;this.opacity=Math.random()*0.5+0.2;}
+function init(){resize();particles=Array.from({length:C.count},()=>new P());}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+  const dx=p.x-mouse.x,dy=p.y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);if(d<C.mouseRadius){const f=(C.mouseRadius-d)/C.mouseRadius;p.x+=dx/d*f*2;p.y+=dy/d*f*2;}
+  ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${C.color},${p.opacity})`;ctx.fill();});
+  for(let i=0;i<particles.length;i++){for(let j=i+1;j<particles.length;j++){const a=particles[i],b=particles[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.sqrt(dx*dx+dy*dy);if(d<C.maxDist){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(${C.color},${(1-d/C.maxDist)*0.35})`;ctx.lineWidth=0.6;ctx.stroke();}}}
+  requestAnimationFrame(draw);
+}
+window.addEventListener('resize',resize);
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+window.addEventListener('mouseleave',()=>{mouse.x=-9999;mouse.y=-9999;});
+const vid=document.getElementById('bg-video');
+vid.addEventListener('playing',()=>{canvas.style.opacity='0';});
+vid.addEventListener('error',()=>{vid.style.display='none';});
+document.querySelectorAll('.filtr-btn').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.filtr-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}));
+init();draw();
+</script>
+</body>
+</html>

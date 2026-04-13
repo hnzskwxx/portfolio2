@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kontakt – Nicolas Jan Sefzig</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --accent: #4d8ef0; --accent-light: #7aaff5; --accent-dim: rgba(77,142,240,0.15); --text: #f0ede6; --muted: rgba(240,237,230,0.55); --border: rgba(255,255,255,0.12); --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif; }
+html, body { width: 100%; height: 100%; overflow-x: hidden; }
+body { background: #080b12; color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.7; }
+
+#bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+#bg-video { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); min-width: 100%; min-height: 100%; width: auto; height: auto; object-fit: cover; z-index: 1; opacity: 0.2; pointer-events: none; }
+.bg-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(8,11,18,0.72) 0%, rgba(8,11,18,0.5) 50%, rgba(8,11,18,0.78) 100%); z-index: 2; }
+
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; }
+.nav-logo { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; color: var(--accent); text-decoration: none; letter-spacing: -0.02em; }
+.nav-links { display: flex; gap: 2.5rem; list-style: none; }
+.nav-links a { color: var(--muted); text-decoration: none; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.25s; position: relative; }
+.nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 1px; background: var(--accent); transform: scaleX(0); transition: transform 0.25s; }
+.nav-links a:hover, .nav-links a.active { color: var(--text); }
+.nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+
+.page-hero { position: relative; z-index: 10; min-height: 50vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 9rem 2rem 5rem; border-bottom: 1px solid var(--border); }
+.section-label-hero { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; animation: fadeDown 0.7s ease both; }
+.page-title { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.75rem; animation: fadeDown 0.7s 0.1s ease both; }
+.page-title .accent { color: var(--accent); }
+.hero-divider { width: 36px; height: 1px; background: var(--accent); margin: 0 auto 1.25rem; animation: fadeDown 0.7s 0.15s ease both; }
+.page-sub { font-size: 1rem; color: var(--muted); font-weight: 300; max-width: 460px; line-height: 1.8; animation: fadeDown 0.7s 0.2s ease both; }
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+
+.content-section { position: relative; z-index: 10; background: rgba(8,11,18,0.92); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 6rem 0; }
+.content-section:nth-child(even) { background: rgba(12,16,26,0.95); }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 2.5rem; }
+.section-label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+.section-title { font-family: var(--font-display); font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 2.5rem; }
+
+/* KONTAKT GRID */
+.kontakt-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 5rem; align-items: start; }
+
+.kontakt-info { position: sticky; top: 7rem; }
+.info-title { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; margin-bottom: 0.4rem; }
+.info-sub { color: var(--muted); font-weight: 300; font-size: 0.92rem; margin-bottom: 2.5rem; line-height: 1.7; }
+
+.contact-cards { display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 2rem; }
+.contact-card { display: flex; align-items: center; gap: 1rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; text-decoration: none; transition: border-color 0.2s, transform 0.2s; }
+.contact-card:hover { border-color: rgba(77,142,240,0.35); transform: translateX(4px); }
+.contact-card-icon { width: 38px; height: 38px; background: var(--accent-dim); border: 1px solid rgba(77,142,240,0.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+.contact-card-label { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.1rem; }
+.contact-card-value { font-size: 0.9rem; color: var(--text); }
+
+.dostupnost { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+.dostupnost-title { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; margin-bottom: 1rem; }
+.dostupnost-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+.dostupnost-row:last-child { border-bottom: none; }
+.dostupnost-day { color: var(--muted); font-weight: 300; }
+.badge-dostupny { font-size: 0.65rem; background: rgba(99,205,34,0.1); color: #7ed957; border: 1px solid rgba(99,205,34,0.2); padding: 0.15rem 0.55rem; border-radius: 4px; }
+
+/* FORMULÁŘ */
+.form-title { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; margin-bottom: 0.4rem; }
+.form-sub { color: var(--muted); font-weight: 300; font-size: 0.92rem; margin-bottom: 2rem; }
+.kontakt-form { display: flex; flex-direction: column; gap: 1.1rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.form-label { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.form-input, .form-textarea, .form-select { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1rem; font-family: var(--font-body); font-size: 0.95rem; color: var(--text); transition: border-color 0.2s; outline: none; width: 100%; }
+.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
+.form-input::placeholder, .form-textarea::placeholder { color: rgba(240,237,230,0.3); }
+.form-textarea { min-height: 130px; resize: vertical; }
+.form-select { appearance: none; cursor: pointer; }
+.form-select option { background: #111827; }
+.form-submit { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: #06090f; font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; border: none; border-radius: 6px; padding: 0.9rem 2rem; cursor: pointer; transition: opacity 0.2s, transform 0.2s; align-self: flex-start; }
+.form-submit:hover { opacity: 0.88; transform: translateY(-1px); }
+.form-note { font-size: 0.78rem; color: var(--muted); font-weight: 300; }
+.success-msg { display: none; background: rgba(99,205,34,0.07); border: 1px solid rgba(99,205,34,0.18); border-radius: 10px; padding: 1.5rem; text-align: center; margin-top: 1rem; }
+.success-msg.visible { display: block; }
+.success-msg p { color: #7ed957; font-weight: 300; }
+
+/* FAQ */
+.faq-list { display: flex; flex-direction: column; }
+.faq-item { border-top: 1px solid var(--border); }
+.faq-item:last-child { border-bottom: 1px solid var(--border); }
+.faq-question { width: 100%; text-align: left; background: transparent; border: none; padding: 1.4rem 0; font-family: var(--font-display); font-weight: 700; font-size: 0.98rem; color: var(--text); display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 1rem; transition: color 0.2s; }
+.faq-question:hover { color: var(--accent-light); }
+.faq-icon { font-size: 1.2rem; color: var(--accent); transition: transform 0.25s; flex-shrink: 0; }
+.faq-item.open .faq-icon { transform: rotate(45deg); }
+.faq-answer { font-size: 0.9rem; color: var(--muted); font-weight: 300; line-height: 1.8; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s; }
+.faq-item.open .faq-answer { max-height: 300px; padding-bottom: 1.5rem; }
+
+footer { position: relative; z-index: 10; background: rgba(6,9,15,0.98); border-top: 1px solid var(--border); padding: 1.75rem 3rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted); font-weight: 300; }
+.footer-logo { font-family: var(--font-display); font-weight: 800; color: var(--accent); font-size: 0.95rem; }
+
+@media (max-width: 900px) { .kontakt-grid { grid-template-columns: 1fr; gap: 3rem; } .kontakt-info { position: static; } .form-row { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { nav { padding: 1.2rem 1.5rem; } .nav-links { display: none; } .container { padding: 0 1.5rem; } footer { flex-direction: column; gap: 0.5rem; text-align: center; padding: 1.5rem; } }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<video id="bg-video" autoplay muted loop playsinline>
+  <source src="video/kontakt.mp4" type="video/mp4">
+</video>
+<div class="bg-overlay"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">NJS.</a>
+  <ul class="nav-links">
+    <li><a href="sluzby.html">Služby</a></li>
+    <li><a href="o-mne.html">O mně</a></li>
+    <li><a href="projekty.html">Projekty</a></li>
+    <li><a href="jak-pracuji.html">Jak pracuji</a></li>
+    <li><a href="kontakt.html" class="active">Kontakt</a></li>
+  </ul>
+</nav>
+
+<div class="page-hero">
+  <p class="section-label-hero">Kontakt</p>
+  <h1 class="page-title">Pojďme něco <span class="accent">vytvořit.</span></h1>
+  <div class="hero-divider"></div>
+  <p class="page-sub">Máš projekt nebo otázku? Napiš mi přes formulář nebo rovnou na email. Odpovím do 24 hodin.</p>
+</div>
+
+<section class="content-section">
+  <div class="container">
+    <div class="kontakt-grid">
+      <div class="kontakt-info">
+        <h2 class="info-title">Kontaktní údaje</h2>
+        <p class="info-sub">Preferuji email nebo formulář. Na zprávy odpovídám zpravidla do druhého dne.</p>
+        <div class="contact-cards">
+          <a href="mailto:honzasefzig@gmail.com" class="contact-card">
+            <div class="contact-card-icon">✉️</div>
+            <div><div class="contact-card-label">Email</div><div class="contact-card-value">honzasefzig@gmail.com</div></div>
+          </a>
+          <a href="#" class="contact-card">
+            <div class="contact-card-icon">💼</div>
+            <div><div class="contact-card-label">LinkedIn</div><div class="contact-card-value">Nicolas Jan Sefzig</div></div>
+          </a>
+          <div class="contact-card">
+            <div class="contact-card-icon">📍</div>
+            <div><div class="contact-card-label">Lokace</div><div class="contact-card-value">Praha a okolí</div></div>
+          </div>
+        </div>
+        <div class="dostupnost">
+          <div class="dostupnost-title">Dostupnost</div>
+          <div class="dostupnost-row"><span class="dostupnost-day">Po – Pá</span><span>9:00 – 20:00</span></div>
+          <div class="dostupnost-row"><span class="dostupnost-day">Sobota</span><span>10:00 – 16:00</span></div>
+          <div class="dostupnost-row"><span class="dostupnost-day">Neděle</span><span>dle dohody</span></div>
+          <div class="dostupnost-row"><span class="dostupnost-day">Aktuálně</span><span class="badge-dostupny">Přijímám projekty</span></div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="form-title">Napiš mi</h2>
+        <p class="form-sub">Vyplň formulář a ozvu se ti co nejdříve.</p>
+        <form class="kontakt-form" id="kontaktForm">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label" for="jmeno">Jméno *</label><input class="form-input" type="text" id="jmeno" placeholder="Jan Novák" required></div>
+            <div class="form-group"><label class="form-label" for="email">Email *</label><input class="form-input" type="email" id="email" placeholder="jan@example.cz" required></div>
+          </div>
+          <div class="form-group"><label class="form-label" for="sluzba">O co máš zájem?</label>
+            <select class="form-select" id="sluzba"><option value="">Vyber službu...</option><option>WordPress web</option><option>Web na míru (HTML/CSS/PHP)</option><option>Správa a údržba webu</option><option>Konzultace</option><option>Jiné</option></select>
+          </div>
+          <div class="form-group"><label class="form-label" for="zprava">Zpráva *</label><textarea class="form-textarea" id="zprava" placeholder="Popiš mi svůj projekt..." required></textarea></div>
+          <div class="form-group"><label class="form-label" for="budget">Orientační rozpočet</label>
+            <select class="form-select" id="budget"><option value="">Vyber rozpočet...</option><option>do 10 000 Kč</option><option>10 000 – 20 000 Kč</option><option>20 000 – 40 000 Kč</option><option>40 000 Kč a více</option><option>Zatím nevím</option></select>
+          </div>
+          <button type="submit" class="form-submit">Odeslat zprávu →</button>
+          <p class="form-note">* Povinná pole. Tvoje data nikam nepředávám.</p>
+        </form>
+        <div class="success-msg" id="successMsg"><p>✓ Zpráva odeslána! Ozvu se ti do 24 hodin.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="content-section">
+  <div class="container">
+    <p class="section-label">Časté otázky</p>
+    <h2 class="section-title">FAQ</h2>
+    <div class="faq-list">
+      <div class="faq-item"><button class="faq-question">Jak dlouho trvá vytvoření webu?<span class="faq-icon">+</span></button><div class="faq-answer">Jednoduchý prezentační web zvládám do 14 dní. Složitější projekty s rezervačním systémem mohou trvat 3–6 týdnů.</div></div>
+      <div class="faq-item"><button class="faq-question">Kolik web stojí?<span class="faq-icon">+</span></button><div class="faq-answer">Web na míru od 12 000 Kč, WordPress web od 15 000 Kč. Cena závisí na rozsahu. Vždy pošlu konkrétní nabídku předem.</div></div>
+      <div class="faq-item"><button class="faq-question">Budu moct web sám upravovat?<span class="faq-icon">+</span></button><div class="faq-answer">WordPress weby jsou navrženy tak, aby je mohl spravovat kdokoli bez technických znalostí. Součástí je krátké zaškolení.</div></div>
+      <div class="faq-item"><button class="faq-question">Zajistíš i doménu a hosting?<span class="faq-icon">+</span></button><div class="faq-answer">Doporučím vhodného poskytovatele a pomohu s nastavením. Doména a hosting jsou na tvé jméno – nejsi na mně závislý.</div></div>
+      <div class="faq-item"><button class="faq-question">Pracuješ i mimo Prahu?<span class="faq-icon">+</span></button><div class="faq-answer">Ano, pracuji vzdáleně pro klienty z celé ČR. Komunikace přes email nebo video hovor. Osobní schůzka možná v Praze a okolí.</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">NJS.</div>
+  <span>© 2025 Nicolas Jan Sefzig</span>
+  <span>Webový vývojář · Praha a okolí</span>
+</footer>
+
+<script>
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');let W,H,particles,mouse={x:-9999,y:-9999};
+const C={count:90,color:'77, 142, 240',maxDist:140,speed:0.35,radius:1.8,mouseRadius:120};
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function P(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*C.speed;this.vy=(Math.random()-.5)*C.speed;this.r=Math.random()*C.radius+0.8;this.opacity=Math.random()*0.5+0.2;}
+function init(){resize();particles=Array.from({length:C.count},()=>new P());}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+  const dx=p.x-mouse.x,dy=p.y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);if(d<C.mouseRadius){const f=(C.mouseRadius-d)/C.mouseRadius;p.x+=dx/d*f*2;p.y+=dy/d*f*2;}
+  ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${C.color},${p.opacity})`;ctx.fill();});
+  for(let i=0;i<particles.length;i++){for(let j=i+1;j<particles.length;j++){const a=particles[i],b=particles[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.sqrt(dx*dx+dy*dy);if(d<C.maxDist){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(${C.color},${(1-d/C.maxDist)*0.35})`;ctx.lineWidth=0.6;ctx.stroke();}}}
+  requestAnimationFrame(draw);
+}
+window.addEventListener('resize',resize);
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+window.addEventListener('mouseleave',()=>{mouse.x=-9999;mouse.y=-9999;});
+const vid=document.getElementById('bg-video');
+vid.addEventListener('playing',()=>{canvas.style.opacity='0';});
+vid.addEventListener('error',()=>{vid.style.display='none';});
+document.querySelectorAll('.faq-question').forEach(btn=>{btn.addEventListener('click',()=>{const item=btn.parentElement,isOpen=item.classList.contains('open');document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));if(!isOpen)item.classList.add('open');});});
+document.getElementById('kontaktForm').addEventListener('submit',function(e){e.preventDefault();this.style.display='none';document.getElementById('successMsg').classList.add('visible');});
+init();draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Služby – Nicolas Jan Sefzig</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --accent: #4d8ef0; --accent-light: #7aaff5; --accent-dim: rgba(77,142,240,0.15); --text: #f0ede6; --muted: rgba(240,237,230,0.55); --border: rgba(255,255,255,0.12); --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif; }
+html, body { width: 100%; height: 100%; overflow-x: hidden; }
+body { background: #080b12; color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.7; }
+
+#bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+#bg-video { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); min-width: 100%; min-height: 100%; width: auto; height: auto; object-fit: cover; z-index: 1; opacity: 0.2; pointer-events: none; }
+.bg-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(8,11,18,0.72) 0%, rgba(8,11,18,0.5) 50%, rgba(8,11,18,0.78) 100%); z-index: 2; }
+
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; }
+.nav-logo { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; color: var(--accent); text-decoration: none; letter-spacing: -0.02em; }
+.nav-links { display: flex; gap: 2.5rem; list-style: none; }
+.nav-links a { color: var(--muted); text-decoration: none; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.25s; position: relative; }
+.nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 1px; background: var(--accent); transform: scaleX(0); transition: transform 0.25s; }
+.nav-links a:hover, .nav-links a.active { color: var(--text); }
+.nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
+
+/* HERO */
+.page-hero { position: relative; z-index: 10; min-height: 55vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 9rem 2rem 5rem; border-bottom: 1px solid var(--border); }
+.section-label-hero { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; animation: fadeDown 0.7s ease both; }
+.page-title { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.75rem; animation: fadeDown 0.7s 0.1s ease both; }
+.page-title .accent { color: var(--accent); }
+.hero-divider { width: 36px; height: 1px; background: var(--accent); margin: 0 auto 1.25rem; animation: fadeDown 0.7s 0.15s ease both; }
+.page-sub { font-size: 1rem; color: var(--muted); font-weight: 300; max-width: 480px; line-height: 1.8; animation: fadeDown 0.7s 0.2s ease both; }
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+
+/* SECTIONS */
+.content-section { position: relative; z-index: 10; background: rgba(8,11,18,0.92); backdrop-filter: blur(20px); border-top: 1px solid var(--border); padding: 6rem 0; }
+.content-section.alt { background: rgba(12,16,26,0.95); }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 2.5rem; }
+.section-label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+.section-title { font-family: var(--font-display); font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 3rem; }
+
+/* HLAVNÍ SLUŽBY – velké karty */
+.sluzby-main { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.sluzba-main-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 2.5rem 3rem;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 3rem;
+  align-items: center;
+  transition: border-color 0.25s, transform 0.25s, background 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.sluzba-main-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.sluzba-main-card:hover { border-color: rgba(77,142,240,0.35); transform: translateX(4px); background: rgba(77,142,240,0.04); }
+.sluzba-main-card:hover::before { opacity: 1; }
+
+.sluzba-left { display: flex; flex-direction: column; gap: 0.75rem; }
+.sluzba-icon-big { font-size: 2.5rem; }
+.sluzba-main-name { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; line-height: 1.1; }
+.sluzba-main-price { font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: var(--accent-light); }
+
+.sluzba-main-desc { font-size: 0.92rem; color: var(--muted); font-weight: 300; line-height: 1.8; }
+
+.sluzba-features { display: flex; flex-direction: column; gap: 0.5rem; }
+.sluzba-feature { font-size: 0.82rem; color: var(--muted); font-weight: 300; display: flex; align-items: center; gap: 0.6rem; }
+.sluzba-feature::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+/* DOPLŇKOVÉ SLUŽBY */
+.sluzby-doplnkove { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+.sluzba-mini-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 1.75rem; transition: border-color 0.2s, transform 0.2s; }
+.sluzba-mini-card:hover { border-color: rgba(77,142,240,0.35); transform: translateY(-3px); }
+.sluzba-mini-icon { font-size: 1.4rem; margin-bottom: 0.75rem; }
+.sluzba-mini-name { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem; }
+.sluzba-mini-desc { font-size: 0.83rem; color: var(--muted); font-weight: 300; line-height: 1.65; margin-bottom: 0.75rem; }
+.sluzba-mini-price { font-size: 0.82rem; font-weight: 400; color: var(--accent-light); }
+
+/* SROVNÁNÍ */
+.srovnani-table { width: 100%; border-collapse: collapse; }
+.srovnani-table th { font-family: var(--font-display); font-weight: 700; font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 1rem 1.25rem; text-align: left; border-bottom: 1px solid var(--border); color: var(--muted); }
+.srovnani-table th:not(:first-child) { text-align: center; }
+.srovnani-table td { padding: 0.9rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.88rem; vertical-align: middle; }
+.srovnani-table td:not(:first-child) { text-align: center; }
+.srovnani-table tr:last-child td { border-bottom: none; }
+.srovnani-table tr:hover td { background: rgba(77,142,240,0.03); }
+.col-feature { color: var(--muted); font-weight: 300; }
+.check { color: #7ed957; font-size: 1rem; }
+.cross { color: rgba(240,237,230,0.25); font-size: 1rem; }
+.col-header-highlight { color: var(--accent-light) !important; }
+
+.srovnani-wrap { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+/* GARANCE */
+.garance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+.garance-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; text-align: center; transition: border-color 0.2s; }
+.garance-card:hover { border-color: rgba(77,142,240,0.35); }
+.garance-num { font-family: var(--font-display); font-weight: 800; font-size: 2rem; color: var(--accent); line-height: 1; margin-bottom: 0.4rem; }
+.garance-label { font-size: 0.82rem; color: var(--muted); font-weight: 300; line-height: 1.5; }
+
+/* CTA */
+.cta-wrap { text-align: center; }
+.cta-title { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; }
+.cta-sub { color: var(--muted); font-weight: 300; margin-bottom: 2.5rem; font-size: 1rem; }
+.btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: #06090f; font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; text-decoration: none; padding: 0.9rem 2rem; border-radius: 6px; transition: opacity 0.2s, transform 0.2s; }
+.btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
+
+footer { position: relative; z-index: 10; background: rgba(6,9,15,0.98); border-top: 1px solid var(--border); padding: 1.75rem 3rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted); font-weight: 300; }
+.footer-logo { font-family: var(--font-display); font-weight: 800; color: var(--accent); font-size: 0.95rem; }
+
+@media (max-width: 1000px) { .sluzba-main-card { grid-template-columns: 1fr 1fr; gap: 2rem; } .sluzba-main-card .sluzba-features { display: none; } }
+@media (max-width: 900px) { .sluzby-doplnkove { grid-template-columns: 1fr 1fr; } .garance-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 700px) { .sluzba-main-card { grid-template-columns: 1fr; gap: 1.5rem; padding: 2rem; } }
+@media (max-width: 640px) { nav { padding: 1.2rem 1.5rem; } .nav-links { display: none; } .container { padding: 0 1.5rem; } .sluzby-doplnkove { grid-template-columns: 1fr; } .garance-grid { grid-template-columns: 1fr 1fr; } footer { flex-direction: column; gap: 0.5rem; text-align: center; padding: 1.5rem; } }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<video id="bg-video" autoplay muted loop playsinline>
+  <source src="video/sluzby.mp4" type="video/mp4">
+</video>
+<div class="bg-overlay"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">NJS.</a>
+  <ul class="nav-links">
+    <li><a href="sluzby.html" class="active">Služby</a></li>
+    <li><a href="o-mne.html">O mně</a></li>
+    <li><a href="projekty.html">Projekty</a></li>
+    <li><a href="jak-pracuji.html">Jak pracuji</a></li>
+    <li><a href="kontakt.html">Kontakt</a></li>
+  </ul>
+</nav>
+
+<div class="page-hero">
+  <p class="section-label-hero">Co nabízím</p>
+  <h1 class="page-title">Moje <span class="accent">služby.</span></h1>
+  <div class="hero-divider"></div>
+  <p class="page-sub">Od jednoduchých prezentačních webů po komplexní WordPress řešení. Vždy na míru, vždy s důrazem na výsledek.</p>
+</div>
+
+<!-- HLAVNÍ SLUŽBY -->
+<section class="content-section">
+  <div class="container">
+    <p class="section-label">Hlavní nabídka</p>
+    <h2 class="section-title">Co dělám nejlépe</h2>
+    <div class="sluzby-main">
+
+      <div class="sluzba-main-card">
+        <div class="sluzba-left">
+          <div class="sluzba-icon-big">🌐</div>
+          <div class="sluzba-main-name">WordPress web</div>
+          <div class="sluzba-main-price">od 15 000 Kč</div>
+        </div>
+        <div class="sluzba-main-desc">
+          Kompletní web postavený na WordPressu – nejrozšířenějším CMS na světě. Snadno upravitelný, rychlý a zabezpečený. Ideální pro firmy a živnostníky, kteří chtějí web spravovat sami bez technických znalostí. Součástí je zaškolení a podpora po spuštění.
+        </div>
+        <div class="sluzba-features">
+          <span class="sluzba-feature">Responzivní design pro mobil</span>
+          <span class="sluzba-feature">SEO základní optimalizace</span>
+          <span class="sluzba-feature">Kontaktní formulář</span>
+          <span class="sluzba-feature">Napojení na Google Analytics</span>
+          <span class="sluzba-feature">Zaškolení ke správě</span>
+          <span class="sluzba-feature">30 dní podpora po spuštění</span>
+        </div>
+      </div>
+
+      <div class="sluzba-main-card">
+        <div class="sluzba-left">
+          <div class="sluzba-icon-big">⚡</div>
+          <div class="sluzba-main-name">Web na míru HTML/CSS/PHP</div>
+          <div class="sluzba-main-price">od 12 000 Kč</div>
+        </div>
+        <div class="sluzba-main-desc">
+          Statický nebo dynamický web psaný ručně bez zbytečných frameworků. Výsledkem je maximálně rychlá stránka s čistým kódem. Ideální pro landing pages, portfolia a jednoduché firemní prezentace, kde záleží na rychlosti načítání a výkonu.
+        </div>
+        <div class="sluzba-features">
+          <span class="sluzba-feature">Maximální rychlost načítání</span>
+          <span class="sluzba-feature">Čistý, přehledný kód</span>
+          <span class="sluzba-feature">Plně responzivní</span>
+          <span class="sluzba-feature">Kontaktní formulář (PHP)</span>
+          <span class="sluzba-feature">Bez zbytečných závislostí</span>
+          <span class="sluzba-feature">30 dní podpora po spuštění</span>
+        </div>
+      </div>
+
+      <div class="sluzba-main-card">
+        <div class="sluzba-left">
+          <div class="sluzba-icon-big">🔧</div>
+          <div class="sluzba-main-name">Správa a údržba webu</div>
+          <div class="sluzba-main-price">od 500 Kč / měsíc</div>
+        </div>
+        <div class="sluzba-main-desc">
+          Pravidelná péče o tvůj existující web. Aktualizace WordPressu a pluginů, automatické zálohy, monitorování dostupnosti a drobné úpravy obsahu. Nemusíš na nic myslet – web mám pod kontrolou já a ty se můžeš věnovat svému podnikání.
+        </div>
+        <div class="sluzba-features">
+          <span class="sluzba-feature">Měsíční aktualizace</span>
+          <span class="sluzba-feature">Automatické zálohy</span>
+          <span class="sluzba-feature">Monitorování dostupnosti</span>
+          <span class="sluzba-feature">Drobné úpravy obsahu</span>
+          <span class="sluzba-feature">Bezpečnostní kontroly</span>
+          <span class="sluzba-feature">Měsíční report</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- DOPLŇKOVÉ SLUŽBY -->
+<section class="content-section alt">
+  <div class="container">
+    <p class="section-label">Navíc</p>
+    <h2 class="section-title">Doplňkové služby</h2>
+    <div class="sluzby-doplnkove">
+      <div class="sluzba-mini-card">
+        <div class="sluzba-mini-icon">📊</div>
+        <div class="sluzba-mini-name">Google Analytics & Search Console</div>
+        <p class="sluzba-mini-desc">Nastavení měření návštěvnosti a napojení na Google Search Console. Budeš vědět, kdo na tvůj web chodí a odkud.</p>
+        <div class="sluzba-mini-price">od 1 500 Kč</div>
+      </div>
+      <div class="sluzba-mini-card">
+        <div class="sluzba-mini-icon">🔍</div>
+        <div class="sluzba-mini-name">SEO základní optimalizace</div>
+        <p class="sluzba-mini-desc">Technické SEO, meta tagy, rychlost načítání, struktura stránek. Základ pro to, aby tě Google vůbec našel.</p>
+        <div class="sluzba-mini-price">od 2 000 Kč</div>
+      </div>
+      <div class="sluzba-mini-card">
+        <div class="sluzba-mini-icon">📱</div>
+        <div class="sluzba-mini-name">Mobilní optimalizace</div>
+        <p class="sluzba-mini-desc">Úprava existujícího webu tak, aby správně fungoval na telefonech a tabletech. Otestováno na reálných zařízeních.</p>
+        <div class="sluzba-mini-price">od 3 000 Kč</div>
+      </div>
+      <div class="sluzba-mini-card">
+        <div class="sluzba-mini-icon">🛒</div>
+        <div class="sluzba-mini-name">WooCommerce e-shop</div>
+        <p class="sluzba-mini-desc">Jednoduchý online obchod na WordPressu s platební bránou, správou produktů a objednávek.</p>
+        <div class="sluzba-mini-price">od 25 000 Kč</div>
+      </div>
+      <div class="sluzba-mini-card">
+        <div class="sluzba-mini-icon">📝</div>
+        <div class="sluzba-mini-name">Copywriting</div>
+        <p class="sluzba-mini-card">Texty pro web psané s ohledem na psychologii čtenáře. Díky studiu psychologie vím, co lidi přesvědčí a co je odradí.</p>
+        <div class="sluzba-mini-price">od 1 000 Kč / stránka</div>
+      </div>
+      <div class="sluzba-mini-card">
+        <div class="sluzba-mini-icon">🔒</div>
+        <div class="sluzba-mini-name">SSL & zabezpečení</div>
+        <p class="sluzba-mini-desc">Nastavení HTTPS certifikátu, základní bezpečnostní konfigurace a ochrana před běžnými útoky.</p>
+        <div class="sluzba-mini-price">od 800 Kč</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SROVNÁNÍ -->
+<section class="content-section">
+  <div class="container">
+    <p class="section-label">Přehled</p>
+    <h2 class="section-title">Co je součástí každého webu</h2>
+    <div class="srovnani-wrap">
+      <table class="srovnani-table">
+        <thead>
+          <tr>
+            <th>Funkce</th>
+            <th>HTML/CSS web</th>
+            <th class="col-header-highlight">WordPress web</th>
+            <th>Správa (měsíčně)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="col-feature">Responzivní design</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td>–</td></tr>
+          <tr><td class="col-feature">Kontaktní formulář</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td>–</td></tr>
+          <tr><td class="col-feature">SEO základy</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td>–</td></tr>
+          <tr><td class="col-feature">30 dní podpora</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td>–</td></tr>
+          <tr><td class="col-feature">Vlastní správa obsahu</td><td><span class="cross">–</span></td><td><span class="check">✓</span></td><td>–</td></tr>
+          <tr><td class="col-feature">Blog / aktuality</td><td><span class="cross">–</span></td><td><span class="check">✓</span></td><td>–</td></tr>
+          <tr><td class="col-feature">Měsíční aktualizace</td><td><span class="cross">–</span></td><td><span class="cross">–</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td class="col-feature">Automatické zálohy</td><td><span class="cross">–</span></td><td><span class="cross">–</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td class="col-feature">Monitorování dostupnosti</td><td><span class="cross">–</span></td><td><span class="cross">–</span></td><td><span class="check">✓</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- GARANCE -->
+<section class="content-section alt">
+  <div class="container">
+    <p class="section-label">Záruky</p>
+    <h2 class="section-title">Co dostaneš vždy</h2>
+    <div class="garance-grid">
+      <div class="garance-card">
+        <div class="garance-num">14</div>
+        <div class="garance-label">dní na dodání základního webu</div>
+      </div>
+      <div class="garance-card">
+        <div class="garance-num">30</div>
+        <div class="garance-label">dní bezplatná podpora po spuštění</div>
+      </div>
+      <div class="garance-card">
+        <div class="garance-num">24h</div>
+        <div class="garance-label">maximální doba odpovědi na zprávu</div>
+      </div>
+      <div class="garance-card">
+        <div class="garance-num">∞</div>
+        <div class="garance-label">revizí v průběhu vývoje</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="content-section">
+  <div class="container">
+    <div class="cta-wrap">
+      <h2 class="cta-title">Nevíš co potřebuješ?</h2>
+      <p class="cta-sub">Napiš mi a společně zjistíme, co je pro tebe nejlepší řešení. Konzultace je zdarma.</p>
+      <a href="kontakt.html" class="btn-primary">Nezávazná konzultace →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">NJS.</div>
+  <span>© 2025 Nicolas Jan Sefzig</span>
+  <span>Webový vývojář · Praha a okolí</span>
+</footer>
+
+<script>
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');let W,H,particles,mouse={x:-9999,y:-9999};
+const C={count:90,color:'77, 142, 240',maxDist:140,speed:0.35,radius:1.8,mouseRadius:120};
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+function P(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*C.speed;this.vy=(Math.random()-.5)*C.speed;this.r=Math.random()*C.radius+0.8;this.opacity=Math.random()*0.5+0.2;}
+function init(){resize();particles=Array.from({length:C.count},()=>new P());}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+  const dx=p.x-mouse.x,dy=p.y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);if(d<C.mouseRadius){const f=(C.mouseRadius-d)/C.mouseRadius;p.x+=dx/d*f*2;p.y+=dy/d*f*2;}
+  ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${C.color},${p.opacity})`;ctx.fill();});
+  for(let i=0;i<particles.length;i++){for(let j=i+1;j<particles.length;j++){const a=particles[i],b=particles[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.sqrt(dx*dx+dy*dy);if(d<C.maxDist){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(${C.color},${(1-d/C.maxDist)*0.35})`;ctx.lineWidth=0.6;ctx.stroke();}}}
+  requestAnimationFrame(draw);
+}
+window.addEventListener('resize',resize);
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+window.addEventListener('mouseleave',()=>{mouse.x=-9999;mouse.y=-9999;});
+const vid=document.getElementById('bg-video');
+vid.addEventListener('playing',()=>{canvas.style.opacity='0';});
+vid.addEventListener('error',()=>{vid.style.display='none';});
+init();draw();
+</script>
+</body>
+</html>
